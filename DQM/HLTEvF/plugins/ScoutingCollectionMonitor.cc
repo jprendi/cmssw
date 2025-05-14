@@ -426,22 +426,32 @@ bool ScoutingCollectionMonitor::getValidHandle(const edm::Event& iEvent,
 template <typename T1, typename T2>
 std::pair<float, float> ScoutingCollectionMonitor::trk_vtx_offSet(const edm::Handle<T1>& handle_vertex,
                                                                   const edm::Handle<T2>& handle_tracks) {
-  float px = handle_tracks->at(0).tk_pt() * cos(handle_tracks->at(0).tk_phi());
-  float py = handle_tracks->at(0).tk_pt() * sin(handle_tracks->at(0).tk_phi());
-  float pz = handle_tracks->at(0).tk_pt() * sinh(handle_tracks->at(0).tk_eta());
-  float pt2 = handle_tracks->at(0).tk_pt() * handle_tracks->at(0).tk_pt();
 
-  float tk_dxyPV = (-(handle_tracks->at(0).tk_vx() - handle_vertex->at(0).x()) * py +
-                    (handle_tracks->at(0).tk_vy() - handle_vertex->at(0).y()) * px) /
-                   handle_tracks->at(0).tk_pt();
+  std::vector<float> dz_alltracks;
+  std::vector<float> dxy_alltracks;
+  
+  for (const auto& tk : *handle_tracks) {
+    float px = tk.tk_pt() * cos(tk.tk_phi());
+    float py = tk.tk_pt() * sin(tk.tk_phi());
+    float pz = tk.tk_pt() * sinh(tk.tk_eta());
+    float pt2 = tk.tk_pt() * tk.tk_pt();
 
-  float theptinv2 = 1.0f / pt2;
-  float tk_dzPV = (handle_tracks->at(0).tk_vz() - handle_vertex->at(0).z()) -
-                  ((handle_tracks->at(0).tk_vx() - handle_vertex->at(0).x()) * px +
-                   (handle_tracks->at(0).tk_vy() - handle_vertex->at(0).y()) * py) *
-                      pz * theptinv2;
+    float tk_dxyPV = (-(tk.tk_vx() - handle_vertex->at(0).x()) * py +
+				                      (tk.tk_vy() - handle_vertex->at(0).y()) * px) /
+			                     tk.tk_pt();
+    float theptinv2 = 1.0f / pt2;
+    float tk_dzPV =
+        (tk.tk_vz() - handle_vertex->at(0).z()) -
+        ((tk.tk_vx() - handle_vertex->at(0).x()) * px + (tk.tk_vy() - handle_vertex->at(0).y()) * py) * pz * theptinv2;
 
-  pair<float, float> offset(tk_dxyPV, tk_dzPV);
+     dz_alltracks.push_back(tk_dzPV);
+     dxy_alltracks.push_back(tk_dxyPV);
+  }
+
+  auto min_it = std::min_element(dz_alltracks.begin(), dz_alltracks.end());
+  int idx = std::distance(dz_alltracks.begin(), min_it);
+
+  pair<float, float> offset(dxy_alltracks[idx], dz_alltracks[idx]);
   return offset;
 }
 
@@ -812,6 +822,7 @@ void ScoutingCollectionMonitor::bookHistograms(DQMStore::IBooker& ibook,
   tk_PV_dz_hist = ibook.book1D("tk_PV_dz", "tk dz w.r.t. PV; tk dz w.r.t. PV; Entries", 100, -0.05, 0.05);
   tk_PV_dxy_hist = ibook.book1D("tk_PV_dxy", "tk dxy w.r.t. PV; tk dxy w.r.t. PV; Entries", 100, -0.05, 0.05);
 
+	  
   ibook.setCurrentFolder(topfoldername_ + "/PFcand");
   PF_pT_211_hist = ibook.book1DD("pT_211", "PF h^{+}  pT (GeV);p_{T} [GeV];Entries", 100, 0.0, 13.0);
   PF_pT_n211_hist = ibook.book1DD("pT_n211", "PF h^{-} pT (GeV);p_{T} [GeV];Entries", 100, 0.0, 14.0);
