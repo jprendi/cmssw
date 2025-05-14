@@ -485,7 +485,6 @@ void ScoutingCollectionMonitor::analyze(const edm::Event& iEvent, const edm::Eve
 return;
   }
 
-  edm::LogError("ScoutingDQMon") << "\n" << __LINE__ ;
   
   if (!isOnline_){
 	if( !getValidHandle(iEvent, onlineMetaDataDigisToken_, onlineMetaDataDigisHandle, "avgPileUp"))  {
@@ -496,7 +495,6 @@ return;
   }
 
 
-  edm::LogError("ScoutingDQMon") << "\n" << __LINE__ ;
  
   // get pile up
 
@@ -747,15 +745,12 @@ return;
   }
 
 
-  edm::LogError("ScoutingDQMon") << "\n" << __LINE__ ;
 
   if (!isOnline_){
   	PVvsPU_hist->Fill(avgPileUp, primaryVertex_counter); 
-  	std::cout<< "\n" << "PVvsPU is being filled";
   }
 
 
-  edm::LogError("ScoutingDQMon") << "\n" << __LINE__ ;
   // fill all the displaced vertices histograms
   for (const auto& vtx : *verticesH) {
     x_vtx_hist->Fill(vtx.x());
@@ -773,7 +768,6 @@ return;
     yzCov_vtx_hist->Fill(vtx.yzCov());
   }
 
-  edm::LogError("ScoutingDQMon") << "\n" << __LINE__ ;
   // fill tracks histograms
   for (const auto& tk : *tracksH) {
     tk_pt_tk_hist->Fill(tk.tk_pt());
@@ -805,17 +799,14 @@ return;
   }
 
 
-  edm::LogError("ScoutingDQMon") << "\n" << __LINE__ ;
   std::vector<float> offset = trk_vtx_offSet(primaryVerticesH, tracksH);
 
   float tk_dxyPV = offset[0];
   float tk_dzPV  = offset[1];
 
-  edm::LogError("ScoutingDQMon") << "\n" << __LINE__ ;
   tk_PV_dxy_hist->Fill(tk_dxyPV);
   tk_PV_dz_hist->Fill(tk_dzPV);
 
-  edm::LogError("ScoutingDQMon") << "\n" << __LINE__ ;
 }
 
 // ------------ method called once each job just before starting event loop  ------------
@@ -832,7 +823,6 @@ void ScoutingCollectionMonitor::bookHistograms(DQMStore::IBooker& ibook,
   if (!isOnline_){
    PVvsPU_hist = ibook.bookProfile("PVvsPU", "Number of primary vertices vs pile up; pile up; <N_{PV}>", 20, 20, 60, 0, 65);
    rhovsPU_hist = ibook.bookProfile("rhovsPU", "#rho vs pile up; pile up; <#rho>", 20, 20, 60, 0, 45);
-   std::cout<< "\n" << "both histograms are booked";
   }
 
  tk_PV_dz_hist = ibook.book1D("tk_PV_dz", "tk dz w.r.t. PV; tk dz w.r.t. PV; Entries", 100, -0.05, 0.05); 
