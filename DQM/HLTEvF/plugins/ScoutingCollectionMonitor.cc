@@ -91,6 +91,7 @@ private:
   const bool onlyScouting_;
   const edm::EDGetTokenT<std::vector<Run3ScoutingMuon>> muonsToken_;
   const edm::EDGetTokenT<std::vector<Run3ScoutingMuon>> muonsVtxToken_;
+  const edm::EDGetTokenT<std::vector<Run3ScoutingMuon>> muonsNoVtxToken_;
   const edm::EDGetTokenT<std::vector<Run3ScoutingElectron>> electronsToken_;
   const edm::EDGetTokenT<std::vector<Run3ScoutingVertex>> primaryVerticesToken_;
   const edm::EDGetTokenT<std::vector<Run3ScoutingVertex>> verticesToken_;
@@ -237,59 +238,59 @@ private:
   dqm::reco::MonitorElement* sMaj_ele_hist;
 
   // muon histograms (index 0: noVtx, index1: Vtx
-  dqm::reco::MonitorElement* pt_mu_hist[2];
-  dqm::reco::MonitorElement* eta_mu_hist[2];
-  dqm::reco::MonitorElement* phi_mu_hist[2];
-  dqm::reco::MonitorElement* type_mu_hist[2];
-  dqm::reco::MonitorElement* charge_mu_hist[2];
-  dqm::reco::MonitorElement* normalizedChi2_mu_hist[2];
-  dqm::reco::MonitorElement* ecalIso_mu_hist[2];
-  dqm::reco::MonitorElement* hcalIso_mu_hist[2];
-  dqm::reco::MonitorElement* trackIso_mu_hist[2];
-  dqm::reco::MonitorElement* nValidStandAloneMuonHits_mu_hist[2];
-  dqm::reco::MonitorElement* nStandAloneMuonMatchedStations_mu_hist[2];
-  dqm::reco::MonitorElement* nValidRecoMuonHits_mu_hist[2];
-  dqm::reco::MonitorElement* nRecoMuonChambers_mu_hist[2];
-  dqm::reco::MonitorElement* nRecoMuonChambersCSCorDT_mu_hist[2];
-  dqm::reco::MonitorElement* nRecoMuonMatches_mu_hist[2];
-  dqm::reco::MonitorElement* nRecoMuonMatchedStations_mu_hist[2];
-  dqm::reco::MonitorElement* nRecoMuonExpectedMatchedStations_mu_hist[2];
-  dqm::reco::MonitorElement* recoMuonStationMask_mu_hist[2];
-  dqm::reco::MonitorElement* nRecoMuonMatchedRPCLayers_mu_hist[2];
-  dqm::reco::MonitorElement* recoMuonRPClayerMask_mu_hist[2];
-  dqm::reco::MonitorElement* nValidPixelHits_mu_hist[2];
-  dqm::reco::MonitorElement* nValidStripHits_mu_hist[2];
-  dqm::reco::MonitorElement* nPixelLayersWithMeasurement_mu_hist[2];
-  dqm::reco::MonitorElement* nTrackerLayersWithMeasurement_mu_hist[2];
-  dqm::reco::MonitorElement* trk_chi2_mu_hist[2];
-  dqm::reco::MonitorElement* trk_ndof_mu_hist[2];
-  dqm::reco::MonitorElement* trk_dxy_mu_hist[2];
-  dqm::reco::MonitorElement* trk_dz_mu_hist[2];
-  dqm::reco::MonitorElement* trk_qoverp_mu_hist[2];
-  dqm::reco::MonitorElement* trk_lambda_mu_hist[2];
-  dqm::reco::MonitorElement* trk_pt_mu_hist[2];
-  dqm::reco::MonitorElement* trk_phi_mu_hist[2];
-  dqm::reco::MonitorElement* trk_eta_mu_hist[2];
-  dqm::reco::MonitorElement* trk_dxyError_mu_hist[2];
-  dqm::reco::MonitorElement* trk_dzError_mu_hist[2];
-  dqm::reco::MonitorElement* trk_qoverpError_mu_hist[2];
-  dqm::reco::MonitorElement* trk_lambdaError_mu_hist[2];
-  dqm::reco::MonitorElement* trk_phiError_mu_hist[2];
-  dqm::reco::MonitorElement* trk_dsz_mu_hist[2];
-  dqm::reco::MonitorElement* trk_dszError_mu_hist[2];
-  dqm::reco::MonitorElement* trk_qoverp_lambda_cov_mu_hist[2];
-  dqm::reco::MonitorElement* trk_qoverp_phi_cov_mu_hist[2];
-  dqm::reco::MonitorElement* trk_qoverp_dxy_cov_mu_hist[2];
-  dqm::reco::MonitorElement* trk_qoverp_dsz_cov_mu_hist[2];
-  dqm::reco::MonitorElement* trk_lambda_phi_cov_mu_hist[2];
-  dqm::reco::MonitorElement* trk_lambda_dxy_cov_mu_hist[2];
-  dqm::reco::MonitorElement* trk_lambda_dsz_cov_mu_hist[2];
-  dqm::reco::MonitorElement* trk_phi_dxy_cov_mu_hist[2];
-  dqm::reco::MonitorElement* trk_phi_dsz_cov_mu_hist[2];
-  dqm::reco::MonitorElement* trk_dxy_dsz_cov_mu_hist[2];
-  dqm::reco::MonitorElement* trk_vx_mu_hist[2];
-  dqm::reco::MonitorElement* trk_vy_mu_hist[2];
-  dqm::reco::MonitorElement* trk_vz_mu_hist[2];
+  dqm::reco::MonitorElement* pt_mu_hist[3];
+  dqm::reco::MonitorElement* eta_mu_hist[3];
+  dqm::reco::MonitorElement* phi_mu_hist[3];
+  dqm::reco::MonitorElement* type_mu_hist[3];
+  dqm::reco::MonitorElement* charge_mu_hist[3];
+  dqm::reco::MonitorElement* normalizedChi2_mu_hist[3];
+  dqm::reco::MonitorElement* ecalIso_mu_hist[3];
+  dqm::reco::MonitorElement* hcalIso_mu_hist[3];
+  dqm::reco::MonitorElement* trackIso_mu_hist[3];
+  dqm::reco::MonitorElement* nValidStandAloneMuonHits_mu_hist[3];
+  dqm::reco::MonitorElement* nStandAloneMuonMatchedStations_mu_hist[3];
+  dqm::reco::MonitorElement* nValidRecoMuonHits_mu_hist[3];
+  dqm::reco::MonitorElement* nRecoMuonChambers_mu_hist[3];
+  dqm::reco::MonitorElement* nRecoMuonChambersCSCorDT_mu_hist[3];
+  dqm::reco::MonitorElement* nRecoMuonMatches_mu_hist[3];
+  dqm::reco::MonitorElement* nRecoMuonMatchedStations_mu_hist[3];
+  dqm::reco::MonitorElement* nRecoMuonExpectedMatchedStations_mu_hist[3];
+  dqm::reco::MonitorElement* recoMuonStationMask_mu_hist[3];
+  dqm::reco::MonitorElement* nRecoMuonMatchedRPCLayers_mu_hist[3];
+  dqm::reco::MonitorElement* recoMuonRPClayerMask_mu_hist[3];
+  dqm::reco::MonitorElement* nValidPixelHits_mu_hist[3];
+  dqm::reco::MonitorElement* nValidStripHits_mu_hist[3];
+  dqm::reco::MonitorElement* nPixelLayersWithMeasurement_mu_hist[3];
+  dqm::reco::MonitorElement* nTrackerLayersWithMeasurement_mu_hist[3];
+  dqm::reco::MonitorElement* trk_chi2_mu_hist[3];
+  dqm::reco::MonitorElement* trk_ndof_mu_hist[3];
+  dqm::reco::MonitorElement* trk_dxy_mu_hist[3];
+  dqm::reco::MonitorElement* trk_dz_mu_hist[3];
+  dqm::reco::MonitorElement* trk_qoverp_mu_hist[3];
+  dqm::reco::MonitorElement* trk_lambda_mu_hist[3];
+  dqm::reco::MonitorElement* trk_pt_mu_hist[3];
+  dqm::reco::MonitorElement* trk_phi_mu_hist[3];
+  dqm::reco::MonitorElement* trk_eta_mu_hist[3];
+  dqm::reco::MonitorElement* trk_dxyError_mu_hist[3];
+  dqm::reco::MonitorElement* trk_dzError_mu_hist[3];
+  dqm::reco::MonitorElement* trk_qoverpError_mu_hist[3];
+  dqm::reco::MonitorElement* trk_lambdaError_mu_hist[3];
+  dqm::reco::MonitorElement* trk_phiError_mu_hist[3];
+  dqm::reco::MonitorElement* trk_dsz_mu_hist[3];
+  dqm::reco::MonitorElement* trk_dszError_mu_hist[3];
+  dqm::reco::MonitorElement* trk_qoverp_lambda_cov_mu_hist[3];
+  dqm::reco::MonitorElement* trk_qoverp_phi_cov_mu_hist[3];
+  dqm::reco::MonitorElement* trk_qoverp_dxy_cov_mu_hist[3];
+  dqm::reco::MonitorElement* trk_qoverp_dsz_cov_mu_hist[3];
+  dqm::reco::MonitorElement* trk_lambda_phi_cov_mu_hist[3];
+  dqm::reco::MonitorElement* trk_lambda_dxy_cov_mu_hist[3];
+  dqm::reco::MonitorElement* trk_lambda_dsz_cov_mu_hist[3];
+  dqm::reco::MonitorElement* trk_phi_dxy_cov_mu_hist[3];
+  dqm::reco::MonitorElement* trk_phi_dsz_cov_mu_hist[3];
+  dqm::reco::MonitorElement* trk_dxy_dsz_cov_mu_hist[3];
+  dqm::reco::MonitorElement* trk_vx_mu_hist[3];
+  dqm::reco::MonitorElement* trk_vy_mu_hist[3];
+  dqm::reco::MonitorElement* trk_vz_mu_hist[3];
 
   // PF Jet histograms
   dqm::reco::MonitorElement* pt_pfj_hist;
@@ -438,6 +439,7 @@ void ScoutingCollectionMonitor::analyze(const edm::Event& iEvent, const edm::Eve
   edm::Handle<std::vector<Run3ScoutingElectron>> electronsH;
   edm::Handle<std::vector<Run3ScoutingMuon>> muonsH;
   edm::Handle<std::vector<Run3ScoutingMuon>> muonsVtxH;
+  edm::Handle<std::vector<Run3ScoutingMuon>> muonsNoVtxH;
   edm::Handle<std::vector<Run3ScoutingPFJet>> PFjetsH;
   edm::Handle<std::vector<Run3ScoutingVertex>> verticesH;
   edm::Handle<std::vector<Run3ScoutingVertex>> primaryVerticesH;
@@ -452,6 +454,7 @@ void ScoutingCollectionMonitor::analyze(const edm::Event& iEvent, const edm::Eve
       !getValidHandle(iEvent, electronsToken_, electronsH, "electrons") ||
       !getValidHandle(iEvent, muonsToken_, muonsH, "muons") ||
       !getValidHandle(iEvent, muonsVtxToken_, muonsVtxH, "muonsVtx") ||
+      !getValidHandle(iEvent, muonsNoVtxToken_, muonsNoVtxH, "muonsNoVtx") ||
       !getValidHandle(iEvent, pfjetsToken_, PFjetsH, "PF jets") ||
       !getValidHandle(iEvent, verticesToken_, verticesH, "vertices") ||
       !getValidHandle(iEvent, primaryVerticesToken_, primaryVerticesH, "primary vertices") ||
@@ -676,6 +679,11 @@ void ScoutingCollectionMonitor::analyze(const edm::Event& iEvent, const edm::Eve
   // muon histograms (index1: Vtx)
   for (const auto& mu : *muonsVtxH)
     fillMuonHistograms(mu, 1);
+
+  // muon histograms (index2: )
+  for (const auto& mu: *muonsNoVtxH)
+    fillMuonHistograms(mu, 2);
+	
 
   // fill all the PF Jet histograms
   for (const auto& jet : *PFjetsH) {
@@ -1181,7 +1189,8 @@ void ScoutingCollectionMonitor::fillDescriptions(edm::ConfigurationDescriptions&
   desc.add<edm::InputTag>("photons", edm::InputTag("hltScoutingEgammaPacker"));
   desc.add<edm::InputTag>("pfjets", edm::InputTag("hltScoutingPFPacker"));
   desc.add<edm::InputTag>("tracks", edm::InputTag("hltScoutingTrackPacker"));
-  desc.add<edm::InputTag>("displacedVertices", edm::InputTag("hltScoutingMuonPackerVtx", "displacedVtx"));
+  desc.add<edm::InputTag>("displacedVertices", edm::InputTag("hltScoutingMuonPackerNoVtx", "displacedVtx"));
+  desc.add<edm::InputTag>("displacedVerticesNoVtx", edm::InputTag("hltScoutingMuonPackerVtx", "displacedVtx"));
   desc.add<edm::InputTag>("primaryVertices", edm::InputTag("hltScoutingPrimaryVertexPacker", "primaryVtx"));
   desc.add<edm::InputTag>("pfMetPt", edm::InputTag("hltScoutingPFPacker", "pfMetPt"));
   desc.add<edm::InputTag>("pfMetPhi", edm::InputTag("hltScoutingPFPacker", "pfMetPhi"));
