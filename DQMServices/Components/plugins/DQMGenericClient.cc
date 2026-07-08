@@ -721,6 +721,21 @@ void DQMGenericClient::makeAllPlots(DQMStore::IBooker& ibooker, DQMStore::IGette
   }
 }
 
+namespace {
+  // Returns a pair: {efficiency_value, efficiency_error}
+  inline std::pair<double, double> computeCPEfficiency(const double num, const double den) {
+    if (den > 0) {
+      const double effVal = num / den;
+      const double errLo = TEfficiency::ClopperPearson((int)den, (int)num, 0.683, false);
+      const double errUp = TEfficiency::ClopperPearson((int)den, (int)num, 0.683, true);
+      const double errVal = (effVal - errLo > errUp - effVal) ? effVal - errLo : errUp - effVal;
+      return {effVal, errVal};
+    } else {
+      return {0., 0.};
+    }
+  }
+}
+
 void DQMGenericClient::computeEfficiency(DQMStore::IBooker& ibooker,
                                          DQMStore::IGetter& igetter,
                                          const string& startDir,
@@ -803,15 +818,15 @@ void DQMGenericClient::computeEfficiency(DQMStore::IBooker& ibooker,
       if (!std::string(hSim->GetXaxis()->GetBinLabel(i)).empty())
         efficHist->GetXaxis()->SetBinLabel(i, hSim->GetXaxis()->GetBinLabel(i));
 
-      if (nSim == 0 or nReco < 0 or nReco > nSim)
+      if (nSim == 0 or nReco < 0)
         continue;
-      const double effVal = nReco / nSim;
-      const double errLo = TEfficiency::ClopperPearson(nSim, nReco, 0.683, false);
-      const double errUp = TEfficiency::ClopperPearson(nSim, nReco, 0.683, true);
-      const double errVal = (effVal - errLo > errUp - effVal) ? effVal - errLo : errUp - effVal;
-      efficHist->SetBinContent(i, effVal);
+      if (type == EfficType::efficiency && nReco > nSim)
+        continue;
+     
+      auto eff = computeCPEfficiency(nReco, nSim);
+      efficHist->SetBinContent(i, eff.first);
       efficHist->SetBinEntries(i, 1);
-      efficHist->SetBinError(i, std::hypot(effVal, errVal));
+      efficHist->SetBinError(i, eff.second);
     }
     ME* efficMe = ibooker.bookProfile(newEfficMEName, efficHist);
     efficMe->setEfficiencyFlag();
@@ -1386,11 +1401,9 @@ void DQMGenericClient::generic_eff(TH1* denom, TH1* numer, MonitorElement* effic
       }
     }
   }
-
-  //efficiencyHist->setMinimum(0.0);
+   //efficiencyHist->setMinimum(0.0);
   //efficiencyHist->setMaximum(1.0);
 }
-
 DEFINE_FWK_MODULE(DQMGenericClient);
 
 /* vim:set ts=2 sts=2 sw=2 expandtab: */
