@@ -71,6 +71,14 @@ hltScoutingDqmOffline = cms.Sequence(recoTrackFromScoutingMonitorSequence +
                                      hltScoutingPi0Monitor +
                                      hltScoutingCollectionMonitor)
 
+hltDqmOnlyScouting = cms.Sequence(recoTrackFromScoutingMonitorSequence +
+                                    hltScoutingTrackMonitor +
+                                    run3ScoutingElectronBestTrack +
+                                    hltScoutingDileptonMonitor +
+                                    hltScoutingDiMuonVertexMonitor +
+                                    hltScoutingPi0Monitor +
+                                    hltScoutingCollectionMonitor)
+
 ## Add the scouting rechits monitoring (only for 2025, integrated in menu GRun 2025 V1.3)
 ## See https://its.cern.ch/jira/browse/CMSHLT-3607
 _hltScoutingDqmOffline = hltScoutingDqmOffline.copy()
