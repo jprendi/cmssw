@@ -15,6 +15,8 @@
 #include <algorithm>
 #include <cmath>
 #include <map>
+#include <limits>
+#include <numbers>
 #include <string>
 #include <vector>
 #include "TLorentzVector.h"
@@ -61,6 +63,24 @@ private:
                       const edm::EDGetTokenT<T>& token,
                       edm::Handle<T>& handle,
                       const std::string& label);
+
+  // Dedicated J/psi monitoring; independent of the inclusive SV plots.
+  struct JPsiHistograms {
+    MonitorElement* mass = nullptr;
+    MonitorElement* lxy = nullptr;
+    MonitorElement* lxyWide = nullptr;
+    MonitorElement* massVsLxy = nullptr;
+    MonitorElement* massVsLxyWide = nullptr;
+    MonitorElement* massVsPhi = nullptr;
+    MonitorElement* massVsEta = nullptr;
+    MonitorElement* pvDz = nullptr;
+  };
+  JPsiHistograms jpsiNoVtx_, jpsiVtx_;
+  void fillJPsi(const std::vector<Run3ScoutingMuon>&,
+                const Run3ScoutingVertex&,
+                size_t,
+                const std::vector<Run3ScoutingVertex>*,
+                const JPsiHistograms&);
 
   // Output Folder
   const std::string outputInternalPath_;
@@ -264,6 +284,19 @@ void ScoutingMuonPropertiesAnalyzer::bookHistograms(DQMStore::IBooker& ibooker,
                                                     edm::Run const&,
                                                     edm::EventSetup const&) {
   ibooker.setCurrentFolder(outputInternalPath_);
+
+  auto bookJPsi = [&](const std::string& prefix, JPsiHistograms& h) {
+    h.mass = ibooker.book1D(prefix + "_mass", "Opposite-charge dimuon mass;m_{#mu#mu} [GeV];Candidates", 200, 2.6, 3.6);
+    h.lxy = ibooker.book1D(prefix + "_signedLxy", "Dimuons, 2.6 < m < 3.6 GeV;Signed L_{xy} [cm];Candidates", 400, -0.1, 0.1);
+    h.lxyWide = ibooker.book1D(prefix + "_signedLxyWide", "Dimuons, 2.6 < m < 3.6 GeV;Signed L_{xy} [cm];Candidates", 400, -1., 1.);
+    h.massVsLxy = ibooker.book2D(prefix + "_massVsSignedLxy", "Dimuon mass versus signed displacement;m_{#mu#mu} [GeV];Signed L_{xy} [cm]", 200, 2.6, 3.6, 400, -0.1, 0.1);
+    h.massVsLxyWide = ibooker.book2D(prefix + "_massVsSignedLxyWide", "Dimuon mass versus signed displacement (wide);m_{#mu#mu} [GeV];Signed L_{xy} [cm]", 200, 2.6, 3.6, 400, -1., 1.);
+    h.massVsPhi = ibooker.book2D(prefix + "_massVsPhi", "Dimuon mass versus dimuon azimuth;#phi_{#mu#mu};m_{#mu#mu} [GeV]", 32, -std::numbers::pi, std::numbers::pi, 200, 2.6, 3.6);
+    h.massVsEta = ibooker.book2D(prefix + "_massVsEta", "Dimuon mass versus dimuon pseudorapidity;#eta_{#mu#mu};m_{#mu#mu} [GeV]", 48, -2.4, 2.4, 200, 2.6, 3.6);
+    h.pvDz = ibooker.book1D(prefix + "_svMinusPVz", "Selected SV minus PV z;z_{SV}-z_{PV} [cm];Candidates", 400, -2., 2.);
+  };
+  bookJPsi("SVNoVtx_JPsi", jpsiNoVtx_);
+  bookJPsi("SVVtx_JPsi", jpsiVtx_);
 
   for (const auto& trig : triggerPathsVector)
     triggerMEMap_[trig] = ibooker.book1D(trig, trig + " fired", 2, 0, 2);
@@ -931,7 +964,7 @@ void ScoutingMuonPropertiesAnalyzer::analyze(const edm::Event& iEvent, const edm
                                 mu.trk_pt() * std::sinh(mu.trk_eta()));
           double vec[15];
           for (int k = 0; k < 15; k++)
-            vec[k] = 1.;
+            vec[k] = 0.;  // Diagonal approximation; do not invent correlations.
           reco::TrackBase::CovarianceMatrix cov(vec, vec + 15);
           cov(0, 0) = std::pow(mu.trk_qoverpError(), 2);
           cov(1, 1) = std::pow(mu.trk_lambdaError(), 2);
@@ -942,7 +975,8 @@ void ScoutingMuonPropertiesAnalyzer::analyze(const edm::Event& iEvent, const edm
           reco::TransientTrack trans = theB->build(trk);
           GlobalPoint svPos(sv.x(), sv.y(), sv.z());
           auto traj = trans.trajectoryStateClosestToPoint(svPos);
-          phiCorr = traj.momentum().phi();
+          if (traj.isValid())
+            phiCorr = traj.momentum().phi();
         }
       }
       muonNoVtx_phiCorr.push_back(phiCorr);
@@ -1016,7 +1050,7 @@ void ScoutingMuonPropertiesAnalyzer::analyze(const edm::Event& iEvent, const edm
                                 mu.trk_pt() * std::sinh(mu.trk_eta()));
           double vec[15];
           for (int k = 0; k < 15; k++)
-            vec[k] = 1.;
+            vec[k] = 0.;  // Diagonal approximation; do not invent correlations.
           reco::TrackBase::CovarianceMatrix cov(vec, vec + 15);
           cov(0, 0) = std::pow(mu.trk_qoverpError(), 2);
           cov(1, 1) = std::pow(mu.trk_lambdaError(), 2);
@@ -1027,7 +1061,8 @@ void ScoutingMuonPropertiesAnalyzer::analyze(const edm::Event& iEvent, const edm
           reco::TransientTrack trans = theB->build(trk);
           GlobalPoint svPos(sv.x(), sv.y(), sv.z());
           auto traj = trans.trajectoryStateClosestToPoint(svPos);
-          phiCorr = traj.momentum().phi();
+          if (traj.isValid())
+            phiCorr = traj.momentum().phi();
         }
       }
       muonVtx_phiCorr.push_back(phiCorr);
@@ -1044,6 +1079,7 @@ void ScoutingMuonPropertiesAnalyzer::analyze(const edm::Event& iEvent, const edm
     }
     for (size_t i = 0; i < SVNoVtx->size(); ++i) {
       const auto& sv = SVNoVtx->at(i);
+      fillJPsi(*muonsNoVtx, sv, i, PV.isValid() ? PV.product() : nullptr, jpsiNoVtx_);
       if (fillAllHistograms_) {
         h_SVNoVtx_x_->Fill(sv.x());
         h_SVNoVtx_y_->Fill(sv.y());
@@ -1105,6 +1141,7 @@ void ScoutingMuonPropertiesAnalyzer::analyze(const edm::Event& iEvent, const edm
     }
     for (size_t i = 0; i < SVVtx->size(); ++i) {
       const auto& sv = SVVtx->at(i);
+      fillJPsi(*muonsVtx, sv, i, PV.isValid() ? PV.product() : nullptr, jpsiVtx_);
       if (fillAllHistograms_) {
         h_SVVtx_x_->Fill(sv.x());
         h_SVVtx_y_->Fill(sv.y());
@@ -1157,6 +1194,82 @@ void ScoutingMuonPropertiesAnalyzer::analyze(const edm::Event& iEvent, const edm
       h_SVVtx_nMuon_->Fill(nMuonMatch);
     }
   }
+}
+
+// This uses the persisted scouting muon four-vectors without a mass constraint
+// or the legacy phi-only correction. It does not refit tracks or change alignment.
+void ScoutingMuonPropertiesAnalyzer::fillJPsi(
+    const std::vector<Run3ScoutingMuon>& muons,
+    const Run3ScoutingVertex& sv,
+    size_t svIndex,
+    const std::vector<Run3ScoutingVertex>* vertices,
+    const JPsiHistograms& h) {
+  if (!sv.isValidVtx() || !std::isfinite(sv.x()) || !std::isfinite(sv.y()) || !std::isfinite(sv.z()))
+    return;
+
+  const Run3ScoutingMuon* pair[2] = {nullptr, nullptr};
+  size_t count = 0;
+  for (const auto& mu : muons) {
+    const auto& indices = mu.vtxIndx();
+    if (std::find(indices.begin(), indices.end(), static_cast<int>(svIndex)) == indices.end())
+      continue;
+    if (count == 2)
+      return;  // Do not interpret a multi-muon vertex as a dimuon candidate.
+    pair[count++] = &mu;
+  }
+  if (count != 2 || pair[0]->charge() * pair[1]->charge() >= 0)
+    return;
+
+  constexpr double muonMass = 0.1056583755;  // GeV
+  TLorentzVector dimuon;
+  for (const auto* mu : pair) {
+    if (!(mu->pt() > 0.) || !std::isfinite(mu->pt()) ||
+        !std::isfinite(mu->eta()) || !std::isfinite(mu->phi()))
+      return;
+    TLorentzVector p4;
+    p4.SetPtEtaPhiM(mu->pt(), mu->eta(), mu->phi(), muonMass);
+    dimuon += p4;
+  }
+  const double mass = dimuon.M();
+  const double pt = dimuon.Pt();
+  if (!std::isfinite(mass) || !std::isfinite(pt) || !(pt > 0.) || mass < 2.6 || mass >= 3.6)
+    return;
+
+  // Keep sidebands; these histograms contain prompt, nonprompt and background.
+  // Mass monitoring must also work when no valid PV is available.
+  h.mass->Fill(mass);
+  h.massVsPhi->Fill(dimuon.Phi(), mass);
+  if (std::isfinite(dimuon.Eta()))
+    h.massVsEta->Fill(dimuon.Eta(), mass);
+
+  const Run3ScoutingVertex* pv = nullptr;
+  double bestDz = std::numeric_limits<double>::infinity();
+  if (vertices) {
+    for (const auto& candidate : *vertices) {
+      if (!candidate.isValidVtx() || !std::isfinite(candidate.x()) ||
+          !std::isfinite(candidate.y()) || !std::isfinite(candidate.z()))
+        continue;
+      const double dz = std::abs(sv.z() - candidate.z());
+      if (dz < bestDz) {
+        bestDz = dz;
+        pv = &candidate;
+      }
+    }
+  }
+  if (!pv)
+    return;
+
+  // Closest valid PV in z is a starting association rule, not truth matching.
+  // No displacement, significance, or pointing cut is applied.
+  const double lxy = ((sv.x() - pv->x()) * dimuon.Px() +
+                      (sv.y() - pv->y()) * dimuon.Py()) / pt;
+  if (!std::isfinite(lxy))
+    return;
+  h.lxy->Fill(lxy);
+  h.lxyWide->Fill(lxy);
+  h.massVsLxy->Fill(mass, lxy);
+  h.massVsLxyWide->Fill(mass, lxy);
+  h.pvDz->Fill(sv.z() - pv->z());
 }
 
 void ScoutingMuonPropertiesAnalyzer::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
