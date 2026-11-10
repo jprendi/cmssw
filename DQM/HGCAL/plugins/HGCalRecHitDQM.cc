@@ -55,6 +55,10 @@ private:
   // per-module TProfile: <E_nMIPs> vs channel; consumed by harvester as avgrechit_nmips.
   std::map<MonitoredElementKey_t, MonitorElement*> avgRechitNmips_;
   std::map<int, std::string> endCapKey = {{-1, "Minus"}, {1, "Plus"}};
+  // once crate information available in the collection to be replaced :):
+  static constexpr int dummyCrate_ = 1;
+  std::map<int, std::map<int, MonitorElement*>>
+      recHitTimePerCrate_;  // first int expected to be -1 or 1 to say which endcap we are at and then second in to be the crate....
 };
 
 //
@@ -171,6 +175,8 @@ void HGCalRecHitDQM::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
     hitsum[endcap][layer] += 1;
     h_energy->Fill(nmips);
     if (time > 0) {
+      const int crate = dummyCrate_;
+      recHitTimePerCrate_.at(endcap).at(crate)->Fill(time);
       h_time->Fill(time);
       h_timevsE->Fill(nmips, time);
     }
@@ -200,6 +206,7 @@ void HGCalRecHitDQM::bookHistograms(DQMStore::IBooker& ibook, edm::Run const& ru
   // bookHistograms runs once per run: rebuild the module maps instead of appending to them.
   followedModules_.clear();
   HGCALMap.clear();
+  recHitTimePerCrate_.clear();
   for (const auto& ele : hgcal::dqm::readoutModules(moduleIndexer, moduleInfo)) {
     followedModules_[MonitoredElementKey_t(ele.fedid, ele.modid)] = ele;
     HGCALMap[ele.endcap][ele.layer][ele.cassette][ele.typecode] = ele;
@@ -244,6 +251,10 @@ void HGCalRecHitDQM::bookHistograms(DQMStore::IBooker& ibook, edm::Run const& ru
       recHitSummariesLayers_[endcap][layer]["rechittimevsenergy"] =
           ibook.book2D("rechittimevsenergy", label + ";Energy [MIP]; RecHit time [ps]", 100, -10, 1000, 100, 0, 5000);
     }
+    // now RecHit timing information per crate
+    ibook.setCurrentFolder(endcapFolder + "crate_" + std::to_string(dummyCrate_));
+    recHitTimePerCrate_[endcap][dummyCrate_] = ibook.book1D(
+        "rechittime", label + "Crate " + std::to_string(dummyCrate_) + "; RecHit time [ps]; RecHits", 100, 0, 5000);
   }
 }
 
