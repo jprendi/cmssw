@@ -207,7 +207,7 @@ void HGCalRecHitDQM::bookHistograms(DQMStore::IBooker& ibook, edm::Run const& ru
   followedModules_.clear();
   HGCALMap.clear();
   recHitTimePerCrate_.clear();
-  cratePerFED_.clear()
+  cratePerFED_.clear();
   const auto& moduleView = moduleInfo.const_view();
   for (int i = 0; i < moduleView.metadata().size(); ++i) {
 	  const auto module = moduleView[i];
@@ -257,10 +257,11 @@ void HGCalRecHitDQM::bookHistograms(DQMStore::IBooker& ibook, edm::Run const& ru
       recHitSummariesLayers_[endcap][layer]["rechittimevsenergy"] =
           ibook.book2D("rechittimevsenergy", label + ";Energy [MIP]; RecHit time [ps]", 100, -10, 1000, 100, 0, 5000);
     }
-    // now RecHit timing information per crate
-    ibook.setCurrentFolder(endcapFolder + "crate_" + std::to_string(dummyCrate_));
-    recHitTimePerCrate_[endcap][dummyCrate_] = ibook.book1D(
-        "rechittime", label + "Crate " + std::to_string(dummyCrate_) + "; RecHit time [ps]; RecHits", 100, 0, 5000);
+    // RecHit timing information per crate.
+    for (const auto crate : moduleIndexer.uniqueCrates()) {
+	    ibook.setCurrentFolder(endcapFolder + "crate_" + std::to_string(crate));
+	    recHitTimePerCrate_[endcap][crate] = ibook.book1D("rechittime", label + " Crate " + std::to_string(crate) + "; RecHit time [ps]; RecHits", 100, 0, 5000);
+}
   }
 }
 
