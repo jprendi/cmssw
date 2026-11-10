@@ -57,7 +57,8 @@ private:
   std::map<int, std::string> endCapKey = {{-1, "Minus"}, {1, "Plus"}};
   // once crate information available in the collection to be replaced :):
   std::map<uint32_t, int> cratePerFED_;
-  std::map<int, MonitorElement*> recHitTimePerCrate_;  // first int expected to be -1 or 1 to say which endcap we are at and then second in to be the crate....
+  std::map<int, MonitorElement*>
+      recHitTimePerCrate_;  // first int expected to be -1 or 1 to say which endcap we are at and then second in to be the crate....
 };
 
 //
@@ -209,8 +210,8 @@ void HGCalRecHitDQM::bookHistograms(DQMStore::IBooker& ibook, edm::Run const& ru
   cratePerFED_.clear();
   const auto& moduleView = moduleInfo.const_view();
   for (int i = 0; i < moduleView.metadata().size(); ++i) {
-	  const auto module = moduleView[i];
-	  cratePerFED_[module.fedid()] = module.crate();
+    const auto module = moduleView[i];
+    cratePerFED_[module.fedid()] = module.crate();
   }
   for (const auto& ele : hgcal::dqm::readoutModules(moduleIndexer, moduleInfo)) {
     followedModules_[MonitoredElementKey_t(ele.fedid, ele.modid)] = ele;
@@ -259,15 +260,19 @@ void HGCalRecHitDQM::bookHistograms(DQMStore::IBooker& ibook, edm::Run const& ru
     // RecHit timing information per crate.
     const auto& crates = moduleIndexer.uniqueCrates();
     if (!crates.empty()) {
-	    const auto [minIt, maxIt] = std::minmax_element(crates.begin(), crates.end());
-	    const int minCrate = *minIt;
-	    const int maxCrate = *maxIt;
-	    ibook.setCurrentFolder(endcapFolder);
-	    recHitTimePerCrate_[endcap] = ibook.bookProfile("rechittimevscrateProfile", label + ";Crate number;Mean RecHit time [ps]", maxCrate - minCrate + 1, minCrate - 0.5, maxCrate + 0.5, 0., 0.,"");
-
+      const auto [minIt, maxIt] = std::minmax_element(crates.begin(), crates.end());
+      const int minCrate = *minIt;
+      const int maxCrate = *maxIt;
+      ibook.setCurrentFolder(endcapFolder);
+      recHitTimePerCrate_[endcap] = ibook.bookProfile("rechittimevscrateProfile",
+                                                      label + ";Crate number;Mean RecHit time [ps]",
+                                                      maxCrate - minCrate + 1,
+                                                      minCrate - 0.5,
+                                                      maxCrate + 0.5,
+                                                      0.,
+                                                      0.,
+                                                      "");
     }
-
-
   }
 }
 
