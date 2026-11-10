@@ -57,8 +57,7 @@ private:
   std::map<int, std::string> endCapKey = {{-1, "Minus"}, {1, "Plus"}};
   // once crate information available in the collection to be replaced :):
   std::map<uint32_t, int> cratePerFED_;
-  std::map<int, std::map<int, MonitorElement*>>
-      recHitTimePerCrate_;  // first int expected to be -1 or 1 to say which endcap we are at and then second in to be the crate....
+  std::map<int, MonitorElement*> recHitTimePerCrate_;  // first int expected to be -1 or 1 to say which endcap we are at and then second in to be the crate....
 };
 
 //
@@ -176,7 +175,7 @@ void HGCalRecHitDQM::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
     h_energy->Fill(nmips);
     if (time > 0) {
       const int crate = cratePerFED_.at(indexinfo.fedId());
-      recHitTimePerCrate_.at(endcap).at(crate)->Fill(time);
+      recHitTimePerCrate_.at(endcap)->Fill(crate, time);
       h_time->Fill(time);
       h_timevsE->Fill(nmips, time);
     }
@@ -258,10 +257,17 @@ void HGCalRecHitDQM::bookHistograms(DQMStore::IBooker& ibook, edm::Run const& ru
           ibook.book2D("rechittimevsenergy", label + ";Energy [MIP]; RecHit time [ps]", 100, -10, 1000, 100, 0, 5000);
     }
     // RecHit timing information per crate.
-    for (const auto crate : moduleIndexer.uniqueCrates()) {
-	    ibook.setCurrentFolder(endcapFolder + "crate_" + std::to_string(crate));
-	    recHitTimePerCrate_[endcap][crate] = ibook.book1D("rechittime", label + " Crate " + std::to_string(crate) + "; RecHit time [ps]; RecHits", 100, 0, 5000);
-}
+    const auto& crates = moduleIndexer.uniqueCrates();
+    if (!crates.empty()) {
+	    const auto [minIt, maxIt] = std::minmax_element(crates.begin(), crates.end());
+	    const int minCrate = *minIt;
+	    const int maxCrate = *maxIt;
+	    ibook.setCurrentFolder(endcapFolder);
+	    recHitTimePerCrate_[endcap] = ibook.bookProfile("rechittimevscrateProfile", label + ";Crate number;Mean RecHit time [ps]", maxCrate - minCrate + 1, minCrate - 0.5, maxCrate + 0.5, 0., 0.,"");
+
+    }
+
+
   }
 }
 
