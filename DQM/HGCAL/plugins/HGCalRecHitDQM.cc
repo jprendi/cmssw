@@ -56,7 +56,7 @@ private:
   std::map<MonitoredElementKey_t, MonitorElement*> avgRechitNmips_;
   std::map<int, std::string> endCapKey = {{-1, "Minus"}, {1, "Plus"}};
   // once crate information available in the collection to be replaced :):
-  static constexpr int dummyCrate_ = 1;
+  std::map<uint32_t, int> cratePerFED_;
   std::map<int, std::map<int, MonitorElement*>>
       recHitTimePerCrate_;  // first int expected to be -1 or 1 to say which endcap we are at and then second in to be the crate....
 };
@@ -175,7 +175,7 @@ void HGCalRecHitDQM::analyze(const edm::Event& iEvent, const edm::EventSetup& iS
     hitsum[endcap][layer] += 1;
     h_energy->Fill(nmips);
     if (time > 0) {
-      const int crate = dummyCrate_;
+      const int crate = cratePerFED_.at(indexinfo.fedId());
       recHitTimePerCrate_.at(endcap).at(crate)->Fill(time);
       h_time->Fill(time);
       h_timevsE->Fill(nmips, time);
@@ -207,6 +207,12 @@ void HGCalRecHitDQM::bookHistograms(DQMStore::IBooker& ibook, edm::Run const& ru
   followedModules_.clear();
   HGCALMap.clear();
   recHitTimePerCrate_.clear();
+  cratePerFED_.clear()
+  const auto& moduleView = moduleInfo.const_view();
+  for (int i = 0; i < moduleView.metadata().size(); ++i) {
+	  const auto module = moduleView[i];
+	  cratePerFED_[module.fedid()] = module.crate();
+  }
   for (const auto& ele : hgcal::dqm::readoutModules(moduleIndexer, moduleInfo)) {
     followedModules_[MonitoredElementKey_t(ele.fedid, ele.modid)] = ele;
     HGCALMap[ele.endcap][ele.layer][ele.cassette][ele.typecode] = ele;
